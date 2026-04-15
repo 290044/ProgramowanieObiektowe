@@ -3,28 +3,91 @@
 
 using namespace std;
 
-int LICZBA_OSOB = 5;
+const int MAX_PERSON_COUNT = 10;
 
-void dodajOsobe(int* tabIndeks, string* tabImie, string *tabNazwisko, int indeks, string imie, string nazwisko);
-void ustawObecnosc(int indeks, bool obecnosc, int *tabIndeks, bool *tabObecnosc);
-void drukujListe(int* tabIndeks, string* tabImie, string* tabNazwisko, bool* tabObecnosc);
-void usunOsobe(int indeks, int* tabIndeks, string* tabImie, string* tabNazwisko, bool* tabObecnosc);
-void edytujOsobe(int indeks, int* tabIndeks, string* tabImie, string* tabNazwisko);
+class Person {
+private:
+    int index;
+    string firstname;
+    string lastname;
+    bool isPresent;
+
+public:
+    Person() : index(-1), firstname(""), lastname(""), isPresent(false) {
+    }
+
+    Person(int newIndex, const string& newFirstName, const string& newLastName) : index(-1), firstname(""), lastname(""), isPresent(false) {
+        SetIndex(newIndex);
+        SetFirstname(newFirstName);
+        SetLastname(newLastName);
+    }
+
+    void SetIndex(int newIndex) {
+        if (newIndex > 0) {
+            index = newIndex;
+        }
+    }
+
+    void SetFirstname(const string& newFirstName) {
+        if (newFirstName.length() > 1) {
+            firstname = newFirstName;
+        }
+    }
+
+    void SetLastname(const string& newLastName) {
+        if (newLastName.length() > 1) {
+            lastname = newLastName;
+        }
+    }
+
+    int GetIndex() const {
+        return index;
+    }
+
+    string GetFirstName() const {
+        return firstname;
+    }
+
+    string GetLastName() const {
+        return lastname;
+    }
+
+    void SetPresence(bool newPresence) {
+        isPresent = newPresence;
+    }
+
+    bool GetPresence() const {
+        return isPresent;
+    }
+
+    void ClearData() {
+        index = -1;
+        firstname = "";
+        lastname = "";
+        isPresent = false;
+    }
+};
+
+void addPerson(Person* tabOsob, int indeks, const string& imie, const string& nazwisko);
+void updatePresence(int index, bool obecnosc, Person* tabOsob);
+void printList(Person* tabOsob);
+void deletePersonByIndex(int indeks, Person* tabOsob);
+void editPersonByIndex(int indeks, Person* tabOsob);
 
 
 
 int main() {
-    int indeksy[5] = {1111, 2222, 3333, 4444, 5555};
-    int* tabIndeks = indeksy;
-    string imiona[5] = {"Tomasz", "Patrycja", "Marek", "Katarzyna", "Piotr"};
-    string* tabImie = imiona;
-    string nazwiska[5] = {"Kowalski", "Nowacka", "Marciniak", "Stefaniak", "Maj"};
-    string* tabNazwisko = nazwiska;
-    bool obecnosci[5] = {};
-    bool* tabObecnosci = obecnosci;
-    bool dzialaProgram = true;
+    Person personArray[MAX_PERSON_COUNT] = {
+        Person(1111, "Tomasz", "Kowalski"),
+        Person(2222, "Patrycja", "Nowacka"),
+        Person(3333, "Marek", "Marciniak"),
+        Person(4444, "Katarzyna", "Stefaniak"),
+        Person(5555, "Piotr", "Maj")
+    };
+    Person* personList = personArray;
+    bool programWorks = true;
 
-    while (dzialaProgram) {
+    while (programWorks) {
         cout << "\n|----- MENU -----|" << endl;
         cout << "1. Wyswietl liste" << endl;
         cout << "2. Dodaj osobe" << endl;
@@ -34,12 +97,12 @@ int main() {
         cout << "0. Wyjscie" << endl;
         cout << "Wybor: ";
 
-        int wybor;
-        cin >> wybor;
+        int choiceNumber;
+        cin >> choiceNumber;
 
-        switch (wybor) {
+        switch (choiceNumber) {
             case 1:
-                drukujListe(tabIndeks, tabImie, tabNazwisko, tabObecnosci);
+                printList(personList);
                 break;
             case 2: {
                 int nowyIndeks;
@@ -51,21 +114,21 @@ int main() {
                 cin >> noweImie;
                 cout << "Podaj nazwisko: ";
                 cin >> noweNazwisko;
-                dodajOsobe(tabIndeks, tabImie, tabNazwisko, nowyIndeks, noweImie, noweNazwisko);
+                addPerson(personList, nowyIndeks, noweImie, noweNazwisko);
                 break;
             }
             case 3: {
                 int indeksDoUsuniecia;
                 cout << "Podaj indeks osoby do usuniecia: ";
                 cin >> indeksDoUsuniecia;
-                usunOsobe(indeksDoUsuniecia, tabIndeks, tabImie, tabNazwisko, tabObecnosci);
+                deletePersonByIndex(indeksDoUsuniecia, personList);
                 break;
             }
             case 4: {
                 int indeksDoEdycji;
                 cout << "Podaj indeks osoby do edycji: ";
                 cin >> indeksDoEdycji;
-                edytujOsobe(indeksDoEdycji, tabIndeks, tabImie, tabNazwisko);
+                editPersonByIndex(indeksDoEdycji, personList);
                 break;
             }
             case 5: {
@@ -81,11 +144,11 @@ int main() {
 
                 bool obecnosc = obc;
 
-                ustawObecnosc(indeksDoObecnosci, obecnosc, tabIndeks, tabObecnosci);
+                updatePresence(indeksDoObecnosci, obecnosc, personList);
                 break;
             }
             case 0:
-                dzialaProgram = false;
+                programWorks = false;
                 cout << "Koniec programu." << endl;
                 break;
             default:
@@ -96,35 +159,38 @@ int main() {
     return 0;
 }
 
-void dodajOsobe(int* tabIndeks, string* tabImie, string *tabNazwisko, int indeks, string imie, string nazwisko){
+
+void addPerson(Person* tabOsob, int indeks, const string& imie, const string& nazwisko){
     if (indeks <= 0) {
-        cout << "Indeks musi być wiekszy od 0" << endl;
+        cout << "Indeks musi byc wiekszy od 0" << endl;
         return;
     }
 
 
-    for (int i = 0; i < LICZBA_OSOB; i++) {
-        if (indeks == tabIndeks[i]) {
+    for (int i = 0; i < MAX_PERSON_COUNT; i++) {
+        if (indeks == tabOsob[i].GetIndex()) {
             cout << "Istnieje juz taki indeks" << endl;
             return;
         }
     }
 
-    for (int i = 0; i < LICZBA_OSOB; i++) {
-        if (tabIndeks[i] <= 0) {
-            tabIndeks[i] = indeks;
-            tabImie[i] = imie;
-            tabNazwisko[i] = nazwisko;
+    for (int i = 0; i < MAX_PERSON_COUNT; i++) {
+        if (tabOsob[i].GetIndex() <= 0) {
+            tabOsob[i].SetIndex(indeks);
+            tabOsob[i].SetFirstname(imie);
+            tabOsob[i].SetLastname(nazwisko);
             return;
         }
     }
+
+    cout << "Lista jest pelna, nie mozna dodac kolejnej osoby" << endl;
 }
 
-void ustawObecnosc(int indeks, bool obecnosc, int *tabIndeks, bool *tabObecnosc){
-    if (LICZBA_OSOB > 0) {
-        for (int i = 0; i < LICZBA_OSOB; i++) {
-            if (indeks == tabIndeks[i]) {
-                tabObecnosc[i] = obecnosc;
+void updatePresence(int index, bool isPresent, Person* peopleList){
+    if (MAX_PERSON_COUNT > 0) {
+        for (int i = 0; i < MAX_PERSON_COUNT; i++) {
+            if (index == peopleList[i].GetIndex()) {
+                peopleList[i].SetPresence(isPresent);
                 return;
             }
         }
@@ -137,32 +203,26 @@ void ustawObecnosc(int indeks, bool obecnosc, int *tabIndeks, bool *tabObecnosc)
 
 }
 
-void drukujListe(int* tabIndeks, string* tabImie, string* tabNazwisko, bool* tabObecnosc) {
+void printList(Person* tabOsob) {
     cout << "|--Indeks--|--Imie--|--Nazwisko--|--Obecnosc--|" << endl;
 
-    for (int i = 0; i < LICZBA_OSOB; i++) {
-        if (tabIndeks[i] <= 0)
+    for (int i = 0; i < MAX_PERSON_COUNT; i++) {
+        if (tabOsob[i].GetIndex() <= 0)
             continue;
 
-        string obStr = tabObecnosc[i] ? "TAK" : "NIE";
-        cout << "|--" << tabIndeks[i] << "--|--" << tabImie[i] << "--|--" << tabNazwisko[i] << "--|--" << obStr << "--|" << endl;
+        string obStr = tabOsob[i].GetPresence() ? "TAK" : "NIE";
+        cout << "|--" << tabOsob[i].GetIndex() << "--|--" << tabOsob[i].GetFirstName() << "--|--" << tabOsob[i].GetLastName() << "--|--" << obStr << "--|" << endl;
     }
 }
 
-void usunOsobe(int indeks, int* tabIndeks, string* tabImie, string* tabNazwisko, bool* tabObecnosc) {
-    for (int i = 0; i < LICZBA_OSOB; i++) {
-        if (indeks == tabIndeks[i]) {
-            for (int j = i; j < LICZBA_OSOB - 1; j++) {
-                tabIndeks[j] = tabIndeks[j + 1];
-                tabImie[j] = tabImie[j + 1];
-                tabNazwisko[j] = tabNazwisko[j + 1];
-                tabObecnosc[j] = tabObecnosc[j + 1];
+void deletePersonByIndex(int indeks, Person* tabOsob) {
+    for (int i = 0; i < MAX_PERSON_COUNT; i++) {
+        if (indeks == tabOsob[i].GetIndex()) {
+            for (int j = i; j < MAX_PERSON_COUNT - 1; j++) {
+                tabOsob[j] = tabOsob[j + 1];
             }
 
-            tabIndeks[LICZBA_OSOB - 1] = -1;
-            tabImie[LICZBA_OSOB - 1] = "";
-            tabNazwisko[LICZBA_OSOB - 1] = "";
-            tabObecnosc[LICZBA_OSOB - 1] = false;
+            tabOsob[MAX_PERSON_COUNT - 1].ClearData();
             return;
         }
     }
@@ -170,9 +230,9 @@ void usunOsobe(int indeks, int* tabIndeks, string* tabImie, string* tabNazwisko,
     cout << "Nie ma osoby o takim indeksie." << endl;
 }
 
-void edytujOsobe(int indeks, int *tabIndeks, string *tabImie, string *tabNazwisko) {
-    for (int i = 0; i < LICZBA_OSOB; i++) {
-        if (indeks == tabIndeks[i]) {
+void editPersonByIndex(int index, Person* peopleList) {
+    for (int i = 0; i < MAX_PERSON_COUNT; i++) {
+        if (index == peopleList[i].GetIndex()) {
             cout << "Co chcesz edytowac?" << endl;
             cout << "1: indeks" << endl;
             cout << "2: Imie" << endl;
@@ -184,25 +244,37 @@ void edytujOsobe(int indeks, int *tabIndeks, string *tabImie, string *tabNazwisk
             switch (choice) {
                 case 1:
                     cout << "Podaj Indeks: ";
-                    cin >> tabIndeks[i];
+                    {
+                        int nowyIndeks;
+                        cin >> nowyIndeks;
+                        peopleList[i].SetIndex(nowyIndeks);
+                    }
                     cout << endl;
                     break;
                 case 2:
                     cout << "Podaj Imie: ";
-                    cin >> tabImie[i];
+                    {
+                        string noweImie;
+                        cin >> noweImie;
+                        peopleList[i].SetFirstname(noweImie);
+                    }
                     cout << endl;
                     break;
 
                 case 3:
                     cout << "Podaj Nazwisko: ";
-                    cin >> tabNazwisko[i];
+                    {
+                        string noweNazwisko;
+                        cin >> noweNazwisko;
+                        peopleList[i].SetLastname(noweNazwisko);
+                    }
                     cout << endl;
                     break;
             }
-        } else {
-            cout << "Nie ma takiego indeksu" << endl;
+            return;
         }
     }
 
+    cout << "Nie ma takiego indeksu" << endl;
 
 }
